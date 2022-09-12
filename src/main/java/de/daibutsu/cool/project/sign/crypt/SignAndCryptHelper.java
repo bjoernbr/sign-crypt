@@ -21,7 +21,6 @@ import static org.bouncycastle.asn1.smime.SMIMECapability.dES_EDE3_CBC;
 import static org.bouncycastle.asn1.smime.SMIMECapability.rC2_CBC;
 import static org.bouncycastle.cms.CMSAlgorithm.RC2_CBC;
 
-import java.io.FileOutputStream;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -48,8 +47,8 @@ public class SignAndCryptHelper {
 			List<X509Certificate> encryptCert) throws Exception {
 		message = sign(message, signPrivateKey, signCert);
 
-		SMIMEEnvelopedGenerator gen = createSMIMEEnvelopedGenerator(encryptCert);
-		MimeBodyPart mp = gen.generate(message, new JceCMSContentEncryptorBuilder(RC2_CBC).build());
+		SMIMEEnvelopedGenerator encrypter = createSMIMEEnvelopedGenerator(encryptCert);
+		MimeBodyPart mp = encrypter.generate(message, new JceCMSContentEncryptorBuilder(RC2_CBC).build());
 
 		message.setContent(mp.getContent(), mp.getContentType());
 		message.saveChanges();
@@ -57,13 +56,11 @@ public class SignAndCryptHelper {
 	}
 
 	public MimeMessage sign(MimeMessage message, PrivateKey signPrivateKey, X509Certificate signCert) throws Exception {
-		message.writeTo(new FileOutputStream("signed1.message"));
 		SMIMESignedGenerator signer = createSMIMESignedGenerator(signPrivateKey, signCert);
 		MimeMultipart mm = signer.generate(message);
 		message.setContent(mm, mm.getContentType());
 
 		message.saveChanges();
-		message.writeTo(new FileOutputStream("signed2.message"));
 		return message;
 	}
 
